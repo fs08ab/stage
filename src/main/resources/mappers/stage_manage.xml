@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ssit.stage.biz.dao.StageManageMapper">
+	<insert id="createStage" parameterType="stagePO">
+		INSERT INTO `t_stage` (
+			`id`,
+			`name`,
+			`summary`,
+			`image`,
+			`party_branch_prefix`,
+			`floor`,
+			`building_id`
+		)
+		VALUES
+			(
+				#{id},
+				#{name},
+				#{summary},
+				#{image},
+				#{partyBranchPrefix},
+		<choose>
+			<when test="floor != null">
+				${floor}
+			</when>
+			<otherwise>
+				NULL
+			</otherwise>
+		</choose>,
+				#{buildingId}
+			)
+	</insert>
+
+	<insert id="createPartyBranch" parameterType="partyBranchPO">
+		INSERT INTO `t_party_branch` (
+			`id`,
+			`name`,
+			`secretary_id`,
+			`superior_id`,
+			`party_member_count`,
+			`building_id`,
+			`floor`
+		)
+		VALUES
+			(
+				#{id},
+				#{name},
+		<choose>
+			<when test="secretaryId != null">
+				${secretaryId}
+			</when>
+			<otherwise>
+				NULL
+			</otherwise>
+		</choose>,
+		<choose>
+			<when test="superiorId != null">
+				${superiorId}
+			</when>
+			<otherwise>
+				NULL
+			</otherwise>
+		</choose>,
+		<choose>
+			<when test="partyMemberCount != null">
+				${partyMemberCount}
+			</when>
+			<otherwise>
+				NULL
+			</otherwise>
+		</choose>,
+				#{buildingId},
+		<choose>
+			<when test="floor != null">
+				${floor}
+			</when>
+			<otherwise>
+				NULL
+			</otherwise>
+		</choose>
+			)
+	</insert>
+
+	<insert id="createPartyMember" parameterType="partyMemberPO">
+		INSERT INTO `t_party_member` (
+			`id`,
+			`name`,
+			`sex_code`,
+			`birth_date`,
+			`education_code`,
+			`adm_post`,
+			`party_post_code`,
+			`party_branch_id`
+		)
+		VALUES
+			(
+				#{id},
+				#{name},
+				#{sexCode},
+				#{birthDate},
+				#{educationCode},
+				#{admPost},
+				#{partyPostCode},
+		<choose>
+			<when test="partyBranchId != null">
+				${partyBranchId}
+			</when>
+			<otherwise>
+				NULL
+			</otherwise>
+		</choose>
+			)
+	</insert>
+
+	<insert id="createActivity" parameterType="activityPO">
+		INSERT INTO `t_activity` (
+			`id`,
+			`name`,
+			`date`,
+			`note`,
+			`image`,
+			`type_code`,
+			`relation_id`
+		)
+		VALUES
+			(
+				#{id},
+				#{name},
+				#{date},
+				#{note},
+				#{image},
+		<choose>
+			<when test="typeCode != null">
+				${typeCode}
+			</when>
+			<otherwise>
+				0
+			</otherwise>
+		</choose>,
+		<choose>
+			<when test="relationId != null">
+				${relationId}
+			</when>
+			<otherwise>
+				NULL
+			</otherwise>
+		</choose>
+			)
+	</insert>
+
+	<insert id="createMARelationBatch" parameterType="java.util.List">
+		INSERT INTO `t_rela_pm_act` (
+			`id`,
+			`party_member_id`,
+			`activity_id`,
+			`score`
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(NULL , ${item.partyMemberId}, ${item.activityId}, ${item.score})
+		</foreach>
+	</insert>
+
+	<delete id="deleteMARelationBatch" parameterType="java.util.List">
+		DELETE
+		FROM
+			t_rela_pm_act
+		WHERE
+			(`party_member_id`, `activity_id`) IN
+		<foreach collection="list" item="item" open="(" close=")" separator=",">
+			(${item.partyMemberId}, ${item.activityId})
+		</foreach>
+	</delete>
+
+	<update id="updateStage" parameterType="stagePO">
+		UPDATE `t_stage`
+		<set>
+			<if test="name != null and name != ''">
+				`name` = #{name},
+			</if>
+			<if test="summary != null and summary != ''">
+				`summary` = #{summary},
+			</if>
+			<if test="image != null and image != ''">
+				`image` = #{image},
+			</if>
+			<if test="partyBranchPrefix != null and partyBranchPrefix != ''">
+				`party_branch_prefix` = #{partyBranchPrefix},
+			</if>
+			<if test="floor != null and floor != ''">
+				`floor` = ${floor},
+			</if>
+			<if test="buildingId != null and buildingId != ''">
+				`building_id` = #{buildingId},
+			</if>
+		</set>
+		<where>
+			`id` = #{id}
+		</where>
+	</update>
+
+	<update id="updatePartyBranch" parameterType="partyBranchPO">
+		UPDATE `t_party_branch`
+		<set>
+			<if test="name != null and name != ''">
+				`name` = #{name},
+			</if>
+			<if test="secretaryId != null and secretaryId != ''">
+				`secretary_id` = ${secretaryId},
+			</if>
+			<if test="superiorId != null and superiorId != ''">
+				`superior_id` = ${superiorId},
+			</if>
+			<if test="partyMemberCount != null and partyMemberCount != ''">
+				`party_member_count` = ${partyMemberCount},
+			</if>
+			<if test="buildingId != null and buildingId != ''">
+				`building_id` = #{buildingId},
+			</if>
+			<if test="floor != null and floor != ''">
+				`floor` = ${floor},
+			</if>
+		</set>
+		<where>
+			`id` = #{id}
+		</where>
+	</update>
+
+	<update id="updatePartyMember" parameterType="partyMemberPO">
+		UPDATE `t_party_member`
+		<set>
+			<if test="name != null and name != ''">
+				`name` = #{name},
+			</if>
+			<if test="sexCode != null and sexCode != ''">
+				`sex_code` = #{sexCode},
+			</if>
+			<if test="birthDate != null and birthDate != ''">
+				`birth_date` = #{birthDate},
+			</if>
+			<if test="educationCode != null and educationCode != ''">
+				`education_code` = #{educationCode},
+			</if>
+			<if test="admPost != null and admPost != ''">
+				`adm_post` = #{admPost},
+			</if>
+			<if test="partyPostCode != null and partyPostCode != ''">
+				`party_post_code` = #{partyPostCode},
+			</if>
+			<if test="partyBranchId != null and partyBranchId != ''">
+				`party_branch_id` = ${partyBranchId},
+			</if>
+		</set>
+		<where>
+			`id` = #{id}
+		</where>
+	</update>
+
+	<update id="updateActivity" parameterType="activityPO">
+		UPDATE `t_activity`
+		<set>
+			<if test="name != null and name != ''">
+				`name` = #{name},
+			</if>
+			<if test="date != null and date != ''">
+				`date` = #{date},
+			</if>
+			<if test="note != null and note != ''">
+				`note` = #{note},
+			</if>
+			<if test="image != null and image != ''">
+				`image` = #{image},
+			</if>
+			<if test="typeCode != null and typeCode != ''">
+				`type_code` = #{typeCode},
+			</if>
+			<if test="relationId != null and relationId != ''">
+				`relation_id` = ${relationId},
+			</if>
+		</set>
+		<where>
+			`id` = #{id}
+		</where>
+	</update>
+
+	<sql id="stageClause">
+		<if test="name != null and name != ''">
+			AND s.`name` LIKE '%${name}%'
+		</if>
+		<if test="floor != null and floor != ''">
+			AND s.`floor` = ${floor}
+		</if>
+		<if test="buildingId != null and buildingId != ''">
+			AND s.`building_id` = #{buildingId}
+		</if>
+	</sql>
+
+	<select id="retrieveStages" resultType="stageVO">
+		SELECT
+			s.id,
+			s.`name`,
+			s.summary,
+			s.image,
+			s.party_branch_prefix,
+			s.building_id,
+			b.`name` AS building_name,
+			s.floor
+		FROM
+			t_stage s
+			LEFT JOIN t_building b ON b.id = s.building_id
+		<where>
+			<include refid="stageClause"/>
+		</where>
+        <choose>
+            <when test="sortName != null and sortName != ''">
+                ORDER BY ${sortName} ${sortOrder}
+            </when>
+            <otherwise>
+                ORDER BY s.`building_id`, s.`floor`, s.`name`
+            </otherwise>
+        </choose>
+		<if test="limit != null and limit != ''">
+			LIMIT ${offset}, ${limit}
+		</if>
+	</select>
+
+	<select id="retrieveStageCount" resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			t_stage s
+			LEFT JOIN t_building b ON b.id = s.building_id
+		<where>
+			<include refid="stageClause"/>
+		</where>
+	</select>
+
+	<sql id="partyBranchClause">
+		<if test="name != null and name != ''">
+			AND r.`name` LIKE '%${name}%'
+		</if>
+		<if test="secretaryName != null and secretaryName != ''">
+			AND m.`name` LIKE '%${secretaryName}%'
+		</if>
+		<if test="floor != null and floor != ''">
+			AND r.`floor` = ${floor}
+		</if>
+		<if test="buildingId != null and buildingId != ''">
+			AND r.`building_id` = #{buildingId}
+		</if>
+	</sql>
+
+	<select id="retrievePartyBranches" resultType="partyBranchVO">
+		SELECT
+			r.id,
+			r.`name`,
+			r.secretary_id,
+			m.`name` AS secretary_name,
+			r.superior_id,
+			l.`name` AS superior_name,
+			r.party_member_count,
+			r.building_id,
+			b.`name` AS building_name,
+			r.floor
+		FROM
+			t_party_branch r
+			LEFT JOIN t_party_branch l ON l.id = r.superior_id
+			LEFT JOIN t_building b ON b.id = r.building_id
+			LEFT JOIN t_party_member m ON m.id = r.secretary_id
+		<where>
+			<include refid="partyBranchClause" />
+		</where>
+		<choose>
+			<when test="sortName != null and sortName != ''">
+				ORDER BY ${sortName} ${sortOrder}
+			</when>
+			<otherwise>
+				ORDER BY r.building_id, r.floor, r.superior_id, r.secretary_id, r.`name`
+			</otherwise>
+		</choose>
+		<if test="limit != null and limit != ''">
+			LIMIT ${offset}, ${limit}
+		</if>
+	</select>
+
+	<select id="retrievePartyBranchCount" resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			t_party_branch r
+			LEFT JOIN t_party_member m ON m.id = r.secretary_id
+		<where>
+			<include refid="partyBranchClause"/>
+		</where>
+	</select>
+
+	<sql id="partyMemberClause">
+		<if test="name != null and name != ''">
+			AND m.`name` LIKE '%${name}%'
+		</if>
+		<if test="sexCode != null and sexCode != ''">
+			AND m.sex_code = #{sexCode}
+		</if>
+		<if test="startDate != null and startDate != ''">
+			AND m.birth_date &gt;= #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND m.birth_date &lt;= #{endDate}
+		</if>
+		<if test="educationCode != null and educationCode != ''">
+			AND m.education_code = #{educationCode}
+		</if>
+		<if test="admPost != null and admPost != ''">
+			AND m.adm_post LIKE '%${admPost}%'
+		</if>
+		<if test="partyPostCode != null and partyPostCode != ''">
+			AND m.party_post_code = #{partyPostCode}
+		</if>
+		<if test="partyBranchId != null and partyBranchId != ''">
+			AND m.party_branch_id = #{partyBranchId}
+		</if>
+	</sql>
+
+	<select id="retrievePartyMembers" resultType="partyMemberVO">
+		SELECT
+			m.id,
+			m.`name`,
+			m.sex_code,
+			s.item AS sex,
+			m.birth_date,
+			m.education_code,
+			e.item AS education,
+			m.adm_post,
+			m.party_post_code,
+			p.item AS party_post,
+			m.party_branch_id,
+			b.`name` AS party_branch_name
+		FROM
+			t_party_member m
+			LEFT JOIN t_party_branch b ON b.id = m.party_branch_id
+			LEFT JOIN t_dictionary s ON s.category_code = 'sex' AND s.item_code = m.sex_code
+			LEFT JOIN t_dictionary e ON e.category_code = 'education' AND e.item_code = m.education_code
+			LEFT JOIN t_dictionary p ON p.category_code = 'party_post' AND p.item_code = m.party_post_code
+		<where>
+			<include refid="partyMemberClause"/>
+		</where>
+        <choose>
+            <when test="sortName != null and sortName != ''">
+                ORDER BY ${sortName} ${sortOrder}
+            </when>
+            <otherwise>
+                ORDER BY m.party_branch_id, m.party_post_code, m.adm_post, m.education_code, m.birth_date, m.sex_code, m.`name`
+            </otherwise>
+        </choose>
+		<if test="limit != null and limit != ''">
+			LIMIT ${offset}, ${limit}
+		</if>
+	</select>
+
+	<select id="retrievePartyMemberCount" resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			t_party_member m
+		<where>
+			<include refid="partyMemberClause"/>
+		</where>
+	</select>
+
+	<sql id="activityClause">
+		<if test="name != null and name != ''">
+			AND a.`name` LIKE '%${name}%'
+		</if>
+		<if test="startDate != null and startDate != ''">
+			AND a.date &gt;= #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND a.date &lt;= #{endDate}
+		</if>
+		<if test="typeCode != null and typeCode != ''">
+			AND a.type_code = #{typeCode}
+			<if test="relationId != null and relationId != ''">
+				AND a.relation_id = #{relationId}
+			</if>
+		</if>
+	</sql>
+
+	<select id="retrieveActivities" resultType="activityVO">
+		SELECT
+			a.id,
+			a.`name`,
+			a.date,
+			a.note,
+			a.image,
+			a.type_code,
+			t.item AS `type`,
+			a.relation_id,
+			(CASE WHEN a.type_code = 0 THEN s.`name` ELSE r.`name` END) AS `relation_name`
+		FROM
+			t_activity a
+			LEFT JOIN t_dictionary t ON t.item_code = a.type_code
+										AND t.category_code = 'activity_type'
+			LEFT JOIN t_stage s ON s.id = a.relation_id
+										AND a.type_code = 0
+			LEFT JOIN t_party_branch r ON r.id = a.relation_id
+										AND a.type_code != 0
+		<where>
+			<include refid="activityClause"/>
+		</where>
+        <choose>
+            <when test="sortName != null and sortName != ''">
+                ORDER BY a.type_code, ${sortName} ${sortOrder}
+            </when>
+            <otherwise>
+                ORDER BY a.type_code, a.relation_id, a.date, a.`name`
+            </otherwise>
+        </choose>
+		<if test="limit != null and limit != ''">
+			LIMIT ${offset}, ${limit}
+		</if>
+	</select>
+
+	<select id="retrieveActivityCount" resultType="java.lang.Integer">
+		SELECT
+			COUNT(*)
+		FROM
+			t_activity a
+		<where>
+			<include refid="activityClause"/>
+		</where>
+	</select>
+
+	<select id="retrieveOptions" resultType="dictionaryVO">
+		SELECT
+			item_code,
+			item
+		FROM
+			t_dictionary
+		WHERE
+			category_code = #{categoryCode}
+		ORDER BY item_code
+	</select>
+
+	<select id="retrieveBuildingOptions" resultType="buildingVO">
+		SELECT
+			id,
+			`name`,
+			floors_total
+		FROM
+			t_building
+		ORDER BY id
+	</select>
+
+	<select id="retrievePartyBranchOptions" resultType="partyBranchVO">
+		SELECT
+			id,
+			`name`
+		FROM
+			t_party_branch
+		ORDER BY id
+	</select>
+
+	<select id="retrievePartyMemberOptions" resultType="partyMemberVO">
+		SELECT
+			id,
+			`name`
+		FROM
+			t_party_member
+		ORDER BY id
+	</select>
+
+
+</mapper>

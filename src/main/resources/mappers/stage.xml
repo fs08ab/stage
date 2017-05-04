@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ssit.stage.biz.dao.StageMapper">
+	<resultMap id="sectionMap" type="sectionVO">
+		<id property="id" column="section_id"/>
+		<result property="name" column="section_name"/>
+		<result property="secretaryId" column="secretary_id"/>
+		<result property="secretary" column="secretary_name"/>
+		<result property="enterpriseCount" column="enterprise_count"/>
+		<result property="camera" column="camera"/>
+		<result property="mesh" column="mesh"/>
+		<collection property="buildings" ofType="buildingVO">
+			<id property="id" column="building_id"/>
+			<result property="name" column="building_name"/>
+			<result property="partyBranchCount" column="building_branch_count"/>
+			<result property="partyMemberCount" column="building_member_count"/>
+			<result property="offset" column="offset"/>
+		</collection>
+	</resultMap>
+
+	<resultMap id="buildingMap" type="buildingVO">
+		<id property="id" column="building_id"/>
+		<result property="name" column="building_name"/>
+		<result property="floorsTotal" column="floors_total"/>
+		<result property="offset" column="offset"/>
+		<association property="stageVO" javaType="stageVO">
+			<id property="id" column="stage_id"/>
+			<result property="name" column="stage_name"/>
+			<result property="summary" column="summary"/>
+			<result property="image" column="image"/>
+			<result property="partyBranchPrefix" column="party_branch_prefix"/>
+			<result property="floor" column="floor"/>
+		</association>
+	</resultMap>
+
+	<select id="retrieveSections" resultType="sectionVO">
+		SELECT id, name
+		FROM t_section
+	</select>
+
+	<select id="retrieveSectionById" resultMap="sectionMap">
+		SELECT
+			s.id AS section_id,
+			s.`name` AS section_name,
+			s.secretary_id,
+			p.`name` AS secretary_name,
+			s.enterprise_count,
+			s.camera,
+			s.mesh,
+			b.id AS building_id,
+			b.`name` AS building_name,
+			b. OFFSET,
+			b.party_branche_count AS building_branch_count,
+			b.party_member_count AS building_member_count
+		FROM
+			t_section s
+			LEFT JOIN t_building b ON b.section_id = s.id
+			LEFT JOIN t_party_member p ON p.id = s.secretary_id
+		WHERE
+			s.id = ${sectionId}
+	</select>
+	<!--<select id="retrieveSectionById" resultMap="sectionMap">
+		SELECT
+			s.id AS section_id,
+			s.`name` AS section_name,
+			s.secretary_id,
+			m.`name` AS secretary_name,
+			s.enterprise_count,
+			s.camera,
+			s.mesh,
+			b.id AS building_id,
+			b.`name` AS building_name,
+			b.`offset`,
+			COUNT(r.id) AS building_branch_count,
+			SUM(IFNULL(r.party_member_count, 0)) AS building_member_count
+		FROM
+			t_section s
+			LEFT JOIN t_building b ON b.section_id = s.id
+			LEFT JOIN t_party_branch r ON r.building_id = b.id
+			LEFT JOIN t_party_member m ON m.id = s.secretary_id
+		WHERE
+			s.id = ${sectionId}
+		GROUP BY
+			b.id
+	</select>-->
+	<!--<select id="retrieveSectionById" resultMap="sectionMap">
+		SELECT
+			section_id,
+			section_name,
+			secretary_id,
+			tm.`name` AS secretary_name,
+			enterprise_count,
+			camera,
+			mesh,
+			building_id,
+			building_name,
+			offset,
+			COUNT(branch_id) AS building_branch_count,
+			SUM(branch_member_count) AS building_member_count
+		FROM
+			(
+				SELECT
+					s.id AS section_id,
+					s.`name` AS section_name,
+					s.secretary_id,
+					s.enterprise_count,
+					s.camera,
+					s.mesh,
+					b.id AS building_id,
+					b.`name` AS building_name,
+					b.offset,
+					r.id AS branch_id,
+					COUNT(m.id) AS branch_member_count
+				FROM
+					t_section s
+				LEFT JOIN t_building b ON b.section_id = s.id
+				LEFT JOIN t_party_branch r ON r.building_id = b.id
+				LEFT JOIN t_party_member m ON m.party_branch_id = r.id
+				WHERE
+					s.id = ${sectionId}
+				GROUP BY
+					s.id,
+					s.`name`,
+					s.secretary_id,
+					s.enterprise_count,
+					s.camera,
+					s.mesh,
+					b.id,
+					b.`name`,
+					b.offset,
+					r.id
+			) AS t1
+		LEFT JOIN t_party_member tm ON tm.id = t1.secretary_id
+		GROUP BY
+			section_id,
+			section_name,
+			secretary_id,
+			tm.`name`,
+			enterprise_count,
+			camera,
+			mesh,
+			building_id,
+			building_name,
+			offset
+	</select>-->
+
+	<select id="retrieveBuildingById" resultMap="buildingMap">
+		SELECT
+			b.id AS building_id,
+			b.`name` AS building_name,
+			b.floors_total,
+			b.`offset`,
+			s.id AS stage_id,
+			s.`name` AS stage_name,
+			s.summary,
+			s.image,
+			s.party_branch_prefix,
+			s.floor
+		FROM
+			t_building b
+			LEFT JOIN t_stage s ON s.building_id = b.id
+		WHERE
+			b.id = #{buildingId}
+		LIMIT 1
+	</select>
+
+
+	<select id="retrievePartyBranches" resultType="partyBranchVO">
+		SELECT
+			r.id,
+			r.`name`,
+			r.secretary_id,
+			s.`name` AS secretary_name,
+			r.superior_id,
+			l.`name` AS superior_name,
+			r.level_code,
+			t.item AS level,
+			IFNULL(SUM(SUBSTRING_INDEX(d.supply, ',', -1)), 0) AS score,
+			(CASE WHEN r.level_code &lt;= 1 THEN '-' ELSE  ul.item_code END ) AS next_level_code,
+			(CASE WHEN r.level_code &lt;= 1 THEN '-' ELSE  ul.item END ) AS next_level,
+			(CASE WHEN r.level_code &lt;= 1 THEN '-' ELSE CONCAT(ROUND((IFNULL(SUM(SUBSTRING_INDEX(d.supply, ',', -1)), 0)/ul.supply) * 100, 2), '%') END ) advance,
+			IFNULL(r.party_member_count, 0) AS party_member_count,
+			COUNT(a.id) as activity_count,
+			r.floor
+		FROM
+			t_party_branch r
+			LEFT JOIN t_dictionary t ON t.item_code = r.level_code
+										AND t.category_code = 'branch_level'
+			LEFT JOIN t_dictionary ul ON ul.item_code = (r.level_code - 1)
+										AND ul.category_code = 'branch_level'
+			LEFT JOIN t_party_branch l ON l.id = r.superior_id
+			LEFT JOIN t_party_member s ON s.id = r.secretary_id
+			LEFT JOIN t_activity a ON a.relation_id = r.id AND a.type_code != '0'
+			LEFT JOIN t_dictionary d ON d.item_code = a.type_code
+										AND d.category_code = 'activity_type'
+		WHERE
+			r.building_id = #{buildingId}
+		GROUP BY r.id, r.`name`, r.secretary_id, s.`name`, r.superior_id, l.`name`, r.level_code, t.item, r.score, ul.item_code, ul.item, ul.supply, r.party_member_count, r.floor
+	</select>
+
+	<select id="retrievePartyMembers" resultType="partyMemberVO">
+		<!-- 按积分从高到低排列 -->
+		SELECT
+			m.id,
+			m.`name`,
+			m.sex_code,
+			s.item AS sex,
+			DATE_FORMAT(birth_date, '%Y.%m') AS birth_date,
+			m.education_code,
+			e.item AS education,
+			adm_post,
+			m.party_post_code,
+			p.item AS party_post,
+			SUM(SUBSTRING_INDEX(d.supply, ',', 1)) AS score
+		FROM
+			t_party_member m
+			LEFT JOIN t_dictionary s ON s.item_code = m.sex_code
+										AND s.category_code = 'sex'
+			LEFT JOIN t_dictionary e ON e.item_code = m.education_code
+										AND e.category_code = 'education'
+			LEFT JOIN t_dictionary p ON p.item_code = m.party_post_code
+										AND p.category_code = 'party_post'
+			LEFT JOIN t_rela_pm_act r ON r.party_member_id = m.id
+			LEFT JOIN t_activity a ON a.id = r.activity_id
+			LEFT JOIN t_dictionary d ON d.item_code = a.type_code
+										AND d.category_code = 'activity_type'
+		WHERE
+			m.party_branch_id = ${partyBranchId}
+		GROUP BY m.id, m.`name`, m.sex_code, s.item, m.birth_date, m.education_code, e.item, m.adm_post, m.party_post_code, p.item
+	</select>
+
+	<select id="retrieveMemberStatistic" resultType="memberStatisticVO">
+		SELECT
+			id,
+			building_id,
+			female_rate,
+			male_rate,
+			aft60_rate,
+			aft70_rate,
+			aft80_rate,
+			aft90_rate,
+			le_college_rate,
+			bachelor_rate,
+			master_rate,
+			doctor_rate
+		FROM
+			t_statistic
+		WHERE
+			building_id = #{buildingId}
+	</select>
+	<!--<select id="retrieveMemberStatistic" resultType="memberStatisticVO">
+		SELECT
+			IF(total=0, 0, ROUND(fc/total, 4)) AS female_rate,
+			IF(total=0, 0, ROUND(mc/total, 4)) AS male_rate,
+			IF(total=0, 0, ROUND(6c/total, 4)) AS aft60_rate,
+			IF(total=0, 0, ROUND(7c/total, 4)) AS aft70_rate,
+			IF(total=0, 0, ROUND(8c/total, 4)) AS aft80_rate,
+			IF(total=0, 0, ROUND(9c/total, 4)) AS aft90_rate,
+			IF(total=0, 0, ROUND(cc/total, 4)) AS college_rate,
+			IF(total=0, 0, ROUND(bc/total, 4)) AS bachelor_rate,
+			IF(total=0, 0, ROUND(mdc/total, 4)) AS aft_master_rate
+		FROM
+			(
+				SELECT
+					IFNULL(SUM(CASE WHEN m.sex_code=0 THEN 1 ELSE NULL END), 0) AS fc,
+					IFNULL(SUM(CASE WHEN m.sex_code=1 THEN 1 ELSE NULL END), 0) AS mc,
+					IFNULL(SUM(CASE WHEN SUBSTR(DATE_FORMAT(m.birth_date, '%Y'), 3, 1)=6 THEN 1 ELSE NULL END), 0) AS 6c,
+					IFNULL(SUM(CASE WHEN SUBSTR(DATE_FORMAT(m.birth_date, '%Y'), 3, 1)=7 THEN 1 ELSE NULL END), 0) AS 7c,
+					IFNULL(SUM(CASE WHEN SUBSTR(DATE_FORMAT(m.birth_date, '%Y'), 3, 1)=8 THEN 1 ELSE NULL END), 0) AS 8c,
+					IFNULL(SUM(CASE WHEN SUBSTR(DATE_FORMAT(m.birth_date, '%Y'), 3, 1)=9 THEN 1 ELSE NULL END), 0) AS 9c,
+					IFNULL(SUM(CASE WHEN m.education_code=0 THEN 1 ELSE NULL END), 0) AS cc,
+					IFNULL(SUM(CASE WHEN m.education_code=1 THEN 1 ELSE NULL END), 0) AS bc,
+					IFNULL(SUM(CASE WHEN m.education_code>=2 THEN 1 ELSE NULL END), 0) AS mdc,
+					IFNULL(COUNT(m.id), 0) AS total
+
+				FROM
+					t_building b
+					INNER JOIN t_party_branch r ON r.building_id = b.id
+					INNER JOIN t_party_member m ON m.party_branch_id = r.id
+				WHERE
+					b.id = #{buildingId}
+			) AS t
+	</select>-->
+
+	<select id="retrieveActivities" resultType="activityVO">
+		SELECT
+			id,
+			`name`,
+			`date`,
+			note,
+			image
+		FROM
+			t_activity
+		WHERE
+			relation_id = ${relationId}
+		<choose>
+			<when test="typeCode == 0">
+				AND type_code = 0
+			</when>
+			<when test="typeCode == 1">
+				AND type_code != 0
+			</when>
+			<otherwise>
+				AND 1 != 1
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="retrieveActivityRules" resultType="activityRuleVO">
+		SELECT
+			statistic_type AS activity_kind,
+			IF (type_code = statistic_type_code, '-', `type`) AS activity_type,
+			score_per_time_m AS member_spt,
+			time_limit_m AS member_tl,
+			score_per_time_b AS branch_spt,
+			time_limit_b AS branch_tl
+		FROM
+			t_activity_rule
+	</select>
+
+	<select id="retrieveActivitiesByPM" resultType="activityVO">
+		SELECT
+			a.id,
+			a.`name`,
+			a.`date`,
+			ma.score
+		FROM
+			t_activity a
+			LEFT JOIN t_rela_pm_act ma ON ma.activity_id = a.id
+		WHERE
+			a.`status` = 'S'
+		AND ma.party_member_id = ${partyMemberId}
+	<if test="startDate != null and startDate != ''">
+		AND a.`date` &gt;= #{startDate}
+	</if>
+	<if test="endDate != null and endDate != ''">
+		AND a.`date` &lt;= #{endDate}
+	</if>
+	</select>
+
+	<!--<select id="retrieveActivitiesByPM" resultType="activityVO">
+		SELECT
+			a.id,
+			a.name,
+			a.date,
+			a.note,
+			a.type_code,
+			t.item AS type,
+			SUBSTRING_INDEX(t.supply, ',', 1) as score
+		FROM
+			t_activity a
+			INNER JOIN t_rela_pm_act r ON a.id = r.activity_id
+			LEFT JOIN t_dictionary t ON t.item_code = a.type_code
+										AND t.category_code = 'activity_type'
+		WHERE
+			r.party_member_id = ${partyMemberId}
+	<if test="startDate != null and startDate != ''">
+		AND a.date &gt;= #{startDate}
+	</if>
+	<if test="endDate != null and endDate != ''">
+		AND a.date &lt;= #{endDate}
+	</if>
+		ORDER BY a.date DESC
+	</select>-->
+
+	<select id="retrievePMAStatistic" resultType="java.util.Map">
+		SELECT
+			rule.statistic_type_code AS type_code,
+			rule.statistic_type AS type,
+			IF (rule.statistic_type_code != AVG(rule.type_code), GROUP_CONCAT(rule.type), NULL) AS sub_type,
+			IFNULL(SUM(t.type_score), 0) AS score
+		FROM
+			t_activity_rule rule
+			LEFT JOIN (
+						  SELECT
+							  ar.type_code,
+							  IF (ar.time_limit_m IS NULL, SUM(ar.score_per_time_m),
+									  LEAST(
+											  SUM(ar.score_per_time_m),
+											  ar.score_per_time_m * ar.time_limit_m
+									  )
+							  ) AS type_score
+						  FROM
+							  t_activity_rule ar
+							  LEFT JOIN t_activity a ON a.type_code = ar.type_code AND a.`status` = 'S'
+							  LEFT JOIN t_rela_pm_act ma ON ma.activity_id = a.id
+						  WHERE
+							  ma.party_member_id = ${partyMemberId}
+						<if test="startDate != null and startDate != ''">
+							AND a.`date` &gt;= #{startDate}
+						</if>
+						<if test="endDate != null and endDate != ''">
+							AND a.`date` &lt;= #{endDate}
+						</if>
+						  GROUP BY
+							  ar.type_code
+					  ) t ON t.type_code = rule.type_code
+		GROUP BY
+			rule.statistic_type_code, rule.statistic_type
+		ORDER BY
+			CAST(rule.statistic_type_code AS SIGNED)
+	</select>
+
+	<!--<select id="retrievePMAStatistic" resultType="java.util.Map">
+		SELECT
+			a.type_code,
+			t.item AS type,
+			SUM(CAST(SUBSTRING_INDEX(t.supply, ',', 1) AS SIGNED)) AS score
+		FROM
+			t_activity a
+			INNER JOIN t_rela_pm_act r ON a.id = r.activity_id
+			LEFT JOIN t_dictionary t ON t.item_code = a.type_code
+			AND t.category_code = 'activity_type'
+		WHERE
+			a.type_code != '0'
+		AND r.party_member_id = ${partyMemberId}
+		GROUP BY a.type_code, t.item
+	</select>-->
+
+	<select id="retrieveDictionary" resultType="dictionaryVO">
+		SELECT
+			item_code,
+			item,
+			category_code,
+			category,
+			supply
+		FROM
+			t_dictionary
+		WHERE
+			category_code = #{categoryCode}
+	</select>
+</mapper>
