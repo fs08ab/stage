@@ -1,6 +1,5 @@
 package com.ssit.stage.common.exception;
 
-import com.ssit.stage.common.constant.ConstantValue;
 import com.ssit.stage.common.constant.ExceptionType;
 
 /**
@@ -24,14 +23,14 @@ public class BaseException extends RuntimeException {
     BaseException(String exceptionCode, String exceptionMsg) {
         super(exceptionMsg);
         this.exceptionCode = exceptionCode;
-        this.exceptionType = ExceptionType.valueOf(exceptionCode);
+        this.exceptionType = ExceptionType.get(exceptionCode);
     }
 
     BaseException(String exceptionCode, String exceptionMsg, Throwable e) {
         super(exceptionMsg, e);
         this.setStackTrace(e.getStackTrace());
         this.exceptionCode = exceptionCode;
-        this.exceptionType = ExceptionType.valueOf(exceptionCode);
+        this.exceptionType = ExceptionType.get(exceptionCode);
     }
 
     BaseException(ExceptionType exceptionType) {

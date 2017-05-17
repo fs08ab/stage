@@ -11,6 +11,8 @@ import com.alibaba.fastjson.annotation.JSONField;
 public class ActivityRuleVO {
     @JSONField(name = "activity_kind")
     private String activityKind;
+    @JSONField(name = "type_code")
+    private String typeCode;
     @JSONField(name = "activity_type")
     private String activityType;
     @JSONField(name = "member_spt")

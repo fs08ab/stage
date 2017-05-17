@@ -9,12 +9,14 @@ import com.ssit.stage.biz.bean.qo.ActivityQO;
 import com.ssit.stage.biz.bean.qo.PartyBranchQO;
 import com.ssit.stage.biz.bean.qo.PartyMemberQO;
 import com.ssit.stage.biz.bean.qo.StageQO;
-import com.ssit.stage.biz.bean.vo.*;
+import com.ssit.stage.biz.bean.vo.BuildingVO;
+import com.ssit.stage.biz.bean.vo.DictionaryVO;
+import com.ssit.stage.biz.bean.vo.PartyBranchVO;
+import com.ssit.stage.biz.bean.vo.PartyMemberVO;
 import com.ssit.stage.biz.service.StageManageService;
 import com.ssit.stage.common.constant.ConstantKey;
 import com.ssit.stage.common.constant.StandardResult;
 import com.ssit.stage.common.exception.BaseException;
-import com.sun.xml.internal.rngom.parse.host.Base;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -227,6 +229,21 @@ public class StageManageController {
         try {
             standardResult = new StandardResult(StandardResult.ResultType.SUCCESS);
             standardResult.setAttach(stageManageService.queryActivities(activity));
+        } catch (Exception e) {
+            BaseException exception = BaseException.boxException(e);
+            standardResult = new StandardResult(exception);
+            LOGGER.error(exception.getLogMessage(), e);
+        }
+        return JSONObject.toJSONString(standardResult);
+    }
+
+    @ResponseBody
+    @RequestMapping("/examine_activity")
+    public String examineActivity(@RequestBody ActivityPO activity) {
+        StandardResult standardResult;
+        try {
+            stageManageService.examineActivity(activity);
+            standardResult = new StandardResult(StandardResult.ResultType.SUCCESS);
         } catch (Exception e) {
             BaseException exception = BaseException.boxException(e);
             standardResult = new StandardResult(exception);

@@ -57,12 +57,14 @@ public interface StageManageService {
      * <pre>
      * 审批活动
      * 通过： 1、修改活动表状态为S
-     *       2、修改党员活动关系表分数（党员分数）（由于党员活动计分有次数限制，因此只能在审核时确定参与某次活动的得分）
-     *       3、修改活动表分数（党支部分数）（同上）
+     *       2、修改党员活动关系表分数（党员因本次活动获得的分数）（由于党员活动计分有次数限制，因此只能在审核时确定参与某次活动的得分）
+     *       3、将本次得分加到党员总得分上
+     *       4、修改活动表分数（党支部因本次活动获得的分数）（同上）
+     *       5、将本次得分加到党支部总得分上
      * 拒绝： 1、修改活动表状态为F
      * </pre>
      */
-    void examineActivity();
+    void examineActivity(ActivityPO activity);
 
     List<DictionaryVO> queryOptions(String categoryCode);
 

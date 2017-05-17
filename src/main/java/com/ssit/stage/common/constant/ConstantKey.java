@@ -31,4 +31,13 @@ public class ConstantKey {
      * 党员或党支部总评分
      */
     public static final String BIZ_TOTAL_SCORE = "total_score";
+
+    /**
+     * 党员ID
+     */
+    public static final String BIZ_MEMBER_ID = "party_member_id";
+    /**
+     * 计数
+     */
+    public static final String BIZ_COUNT = "count";
 }

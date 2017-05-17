@@ -5,6 +5,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 /**
  * 活动VO
@@ -18,12 +19,18 @@ public class ActivityVO {
     private Date date;
     private String note;
     private String image;
-    private int score;
+    @JSONField(name = "type_code")
     private String typeCode;
     private String type;
-
     @JSONField(name = "relation_id")
     private int relationId;
+    @JSONField(name = "party_members")
+    private List<PartyMemberVO> partyMembers;
+    /**
+     * 保存党支部发起该活动可获得的分数
+     */
+    private int score;
+    private String status;
 
     public Integer getId() {
         return id;
@@ -49,10 +56,6 @@ public class ActivityVO {
         return image;
     }
 
-    public int getScore() {
-        return score;
-    }
-
     public String getTypeCode() {
         return typeCode;
     }
@@ -63,5 +66,17 @@ public class ActivityVO {
 
     public int getRelationId() {
         return relationId;
+    }
+
+    public List<PartyMemberVO> getPartyMembers() {
+        return partyMembers;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public String getStatus() {
+        return status;
     }
 }

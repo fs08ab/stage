@@ -174,7 +174,7 @@
 			r.superior_id,
 			l.`name` AS superior_name,
 			r.level_code,
-			t.item AS level,
+			t.item AS `level`,
 			IFNULL(SUM(SUBSTRING_INDEX(d.supply, ',', -1)), 0) AS score,
 			(CASE WHEN r.level_code &lt;= 1 THEN '-' ELSE  ul.item_code END ) AS next_level_code,
 			(CASE WHEN r.level_code &lt;= 1 THEN '-' ELSE  ul.item END ) AS next_level,
@@ -309,6 +309,7 @@
 	<select id="retrieveActivityRules" resultType="activityRuleVO">
 		SELECT
 			statistic_type AS activity_kind,
+			type_code,
 			IF (type_code = statistic_type_code, '-', `type`) AS activity_type,
 			score_per_time_m AS member_spt,
 			time_limit_m AS member_tl,

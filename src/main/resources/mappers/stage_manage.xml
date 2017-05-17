@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.ssit.stage.biz.dao.StageManageMapper">
+	<resultMap id="activityMap" type="activityVO">
+		<id property="id" column="id"/>
+		<result property="name" column="name"/>
+		<result property="date" column="date"/>
+		<result property="note" column="note"/>
+		<result property="image" column="image"/>
+		<result property="typeCode" column="type_code"/>
+		<result property="type" column="type"/>
+		<result property="relationId" column="relation_id"/>
+		<result property="score" column="score"/>
+		<result property="status" column="status"/>
+		<collection property="partyMembers" column="{activityId=id}" select="retrievePMsByActivity"/>
+	</resultMap>
+
 	<insert id="createStage" parameterType="stagePO">
 		INSERT INTO `t_stage` (
 			`id`,
@@ -119,7 +133,8 @@
 			`note`,
 			`image`,
 			`type_code`,
-			`relation_id`
+			`relation_id`,
+			`status`
 		)
 		VALUES
 			(
@@ -143,9 +158,23 @@
 			<otherwise>
 				NULL
 			</otherwise>
-		</choose>
+		</choose>,
+				#{status}
 			)
 	</insert>
+
+	<!--<insert id="createMARelationBatch" parameterType="java.util.List">
+		INSERT INTO `t_rela_pm_act` (
+			`id`,
+			`party_member_id`,
+			`activity_id`,
+			`score`
+		)
+		VALUES
+		<foreach collection="list" item="item" separator=",">
+			(NULL , ${item.partyMemberId}, ${item.activityId}, #{item.score,jdbcType=INTEGER})
+		</foreach>
+	</insert>-->
 
 	<insert id="createMARelationBatch" parameterType="java.util.List">
 		INSERT INTO `t_rela_pm_act` (
@@ -155,8 +184,8 @@
 			`score`
 		)
 		VALUES
-		<foreach collection="list" item="item" separator=",">
-			(NULL , ${item.partyMemberId}, ${item.activityId}, ${item.score})
+		<foreach collection="partyMemberIds" item="item" separator=",">
+			(NULL , ${item}, ${activityId}, NULL)
 		</foreach>
 	</insert>
 
@@ -225,6 +254,16 @@
 		</where>
 	</update>
 
+	<update id="updatePartyBranchAddScore">
+		UPDATE `t_party_branch`
+		<set>
+			`score` = IFNULL(`score`, 0) + ${score},
+		</set>
+		<where>
+			`id` = #{partyBranchId}
+		</where>
+	</update>
+
 	<update id="updatePartyMember" parameterType="partyMemberPO">
 		UPDATE `t_party_member`
 		<set>
@@ -255,6 +294,16 @@
 		</where>
 	</update>
 
+	<update id="updatePartyMemberAddScore">
+		UPDATE `t_party_member`
+		<set>
+			`score` = IFNULL(`score`, 0) + ${score},
+		</set>
+		<where>
+			`id` = #{partyMemberId}
+		</where>
+	</update>
+
 	<update id="updateActivity" parameterType="activityPO">
 		UPDATE `t_activity`
 		<set>
@@ -276,9 +325,26 @@
 			<if test="relationId != null and relationId != ''">
 				`relation_id` = ${relationId},
 			</if>
+			<if test="score != null and score != ''">
+				`score` = ${score},
+			</if>
+			<if test="status != null and status != ''">
+				`status` = #{status},
+			</if>
 		</set>
 		<where>
 			`id` = #{id}
+		</where>
+	</update>
+
+	<update id="updatePMAScore" parameterType="relationMAPO">
+		UPDATE `t_rela_pm_act`
+		<set>
+			`score` = ${score},
+		</set>
+		<where>
+			AND `party_member_id` = #{partyMemberId}
+			AND `activity_id` = #{activityId}
 		</where>
 	</update>
 
@@ -467,6 +533,9 @@
 	</select>
 
 	<sql id="activityClause">
+		<if test="id != null and id != ''">
+			AND a.id = #{id}
+		</if>
 		<if test="name != null and name != ''">
 			AND a.`name` LIKE '%${name}%'
 		</if>
@@ -484,7 +553,7 @@
 		</if>
 	</sql>
 
-	<select id="retrieveActivities" resultType="activityVO">
+	<select id="retrieveActivities" resultMap="activityMap">
 		SELECT
 			a.id,
 			a.`name`,
@@ -494,15 +563,14 @@
 			a.type_code,
 			t.item AS `type`,
 			a.relation_id,
-			(CASE WHEN a.type_code = 0 THEN s.`name` ELSE r.`name` END) AS `relation_name`
+			(CASE WHEN a.type_code = 0 THEN s.`name` ELSE r.`name` END) AS `relation_name`,
+			a.score,
+			a.status
 		FROM
 			t_activity a
-			LEFT JOIN t_dictionary t ON t.item_code = a.type_code
-										AND t.category_code = 'activity_type'
-			LEFT JOIN t_stage s ON s.id = a.relation_id
-										AND a.type_code = 0
-			LEFT JOIN t_party_branch r ON r.id = a.relation_id
-										AND a.type_code != 0
+			LEFT JOIN t_dictionary t ON t.item_code = a.type_code AND t.category_code = 'activity_type'
+			LEFT JOIN t_stage s ON s.id = a.relation_id AND a.type_code = 0
+			LEFT JOIN t_party_branch r ON r.id = a.relation_id AND a.type_code != 0
 		<where>
 			<include refid="activityClause"/>
 		</where>
@@ -517,6 +585,17 @@
 		<if test="limit != null and limit != ''">
 			LIMIT ${offset}, ${limit}
 		</if>
+	</select>
+
+	<select id="retrievePMsByActivity" resultType="partyMemberVO">
+		SELECT
+			ma.party_member_id AS `id`,
+			m.`name`
+		FROM
+			t_rela_pm_act ma
+			INNER JOIN t_party_member m ON m.id = ma.party_member_id
+		WHERE
+			ma.activity_id = ${activityId}
 	</select>
 
 	<select id="retrieveActivityCount" resultType="java.lang.Integer">
@@ -568,5 +647,24 @@
 		ORDER BY id
 	</select>
 
-
+	<select id="retrievePMATStatistic" resultType="java.util.Map">
+		SELECT
+			ma.party_member_id,
+			COUNT(*) AS `count`
+		FROM
+			t_rela_pm_act ma
+			INNER JOIN t_activity a ON a.id = ma.activity_id
+		WHERE
+			a.type_code = #{typeCode}
+			AND ma.party_member_id IN (
+				SELECT
+					party_member_id
+				FROM
+					t_rela_pm_act
+				WHERE
+					activity_id = ${activityId}
+			)
+		GROUP BY
+			ma.party_member_id
+	</select>
 </mapper>

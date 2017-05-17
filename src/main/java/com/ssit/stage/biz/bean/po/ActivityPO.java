@@ -3,7 +3,6 @@ package com.ssit.stage.biz.bean.po;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.sql.Date;
 import java.util.List;
 
 /**
@@ -19,11 +18,17 @@ public class ActivityPO {
     private String date;
     private String note;
     private String image;
+    @JsonProperty("type_code")
     private String typeCode;
-    // @JsonProperty("relation_id")
+     @JsonProperty("relation_id")
     private Integer relationId;
-
-    private List<Integer> memberIdList;
+    @JsonProperty("member_ids")
+    private List<Integer> memberIds;
+    /**
+     * 保存党支部发起该活动可获得的分数
+     */
+    private Integer score;
+    private String status;
 
     public Integer getId() {
         return id;
@@ -37,7 +42,23 @@ public class ActivityPO {
         return relationId;
     }
 
-    public List<Integer> getMemberIdList() {
-        return memberIdList;
+    public List<Integer> getMemberIds() {
+        return memberIds;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

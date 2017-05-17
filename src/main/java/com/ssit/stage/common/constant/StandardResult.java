@@ -43,7 +43,7 @@ public class StandardResult {
         this.resultMessage = ResultType.FAILED.getResultMessage();
 
         this.putAttach(ConstantKey.ERROR_CODE, e.getCode());
-        this.putAttach(ConstantKey.ERROR_MESSAGE, e.getLogMessage());
+        this.putAttach(ConstantKey.ERROR_MESSAGE, e.getMessage());
     }
 
     public void putAttach(String key, Object value) {

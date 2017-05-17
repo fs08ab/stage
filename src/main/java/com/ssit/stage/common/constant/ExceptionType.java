@@ -14,9 +14,11 @@ import java.util.regex.Pattern;
 public enum ExceptionType {
     SYSTEM_EXCEPTION("01_001", "服务端发生异常"),
 
+    BIZ_EXCEPTION("02_001", "业务异常：{0}"),
+
     DATABASE_EXCEPTION("01_002", "操作数据库发生异常"),
 
-    PARAMS_INVALID("01_003", "参数非法：{+}");
+    PARAMS_INVALID("02_002", "参数非法：{+}");
 
     private String code;
     private String message;
@@ -63,5 +65,15 @@ public enum ExceptionType {
         }
 
         return message;
+    }
+
+    public static ExceptionType get(String code) {
+        ExceptionType[] values = ExceptionType.values();
+        for (ExceptionType eType : values) {
+            if (eType.getCode().equals(code)) {
+                return eType;
+            }
+        }
+        return null;
     }
 }

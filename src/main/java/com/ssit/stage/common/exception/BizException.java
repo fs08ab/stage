@@ -8,9 +8,19 @@ import com.ssit.stage.common.constant.ExceptionType;
  * Created by Fs on 2017/3/6 18:45
  */
 public class BizException extends BaseException {
+    private static final ExceptionType exceptionType = ExceptionType.BIZ_EXCEPTION;
 
     public BizException(String exceptionCode, String exceptionMsg) {
         super(exceptionCode, exceptionMsg);
+    }
+
+
+    public BizException(String extMsg) {
+        this(exceptionType.getCode(), exceptionType.getMessage(extMsg));
+    }
+
+    public BizException() {
+        super(exceptionType);
     }
 
     public BizException(ExceptionType exceptionType) {

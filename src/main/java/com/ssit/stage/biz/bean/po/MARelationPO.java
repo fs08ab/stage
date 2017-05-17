@@ -1,9 +1,6 @@
 package com.ssit.stage.biz.bean.po;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.sql.Date;
 
 /**
  * 建筑VO
@@ -23,5 +20,21 @@ public class MARelationPO {
 
     public void setActivityId(Integer activityId) {
         this.activityId = activityId;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
+
+    public Integer getPartyMemberId() {
+        return partyMemberId;
+    }
+
+    public Integer getActivityId() {
+        return activityId;
+    }
+
+    public Integer getScore() {
+        return score;
     }
 }

@@ -12,4 +12,12 @@ public class ConstantValue {
     public static final String STRING_CONNECTOR = ":";
 
     public static final String STRING_SEPARATOR = ";";
+
+    /**
+     * 活动状态<br/>
+     * I：初创建<br/>
+     * S：审核通过<br/>
+     * F：审核不通过
+     */
+    public static final String[] ACTIVITY_STATUS = {"I", "S", "F"};
 }

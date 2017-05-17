@@ -53,12 +53,12 @@ public class StageServiceImpl implements StageService {
 
     @Override
     public List<PartyBranchVO> queryPartyBranches(String buildingId) {
-        return stageMapper.retrievePartyBranches(buildingId);
+        return stageMapper.retrievePartyBranches(buildingId, null, null);
     }
 
     @Override
     public List<PartyMemberVO> queryPartyMembers(int partyBranchId) {
-        return stageMapper.retrievePartyMembers(partyBranchId);
+        return stageMapper.retrievePartyMembers(partyBranchId, null, null);
     }
 
     @Override
@@ -72,7 +72,7 @@ public class StageServiceImpl implements StageService {
 
     @Override
     public List<ActivityVO> queryActivities(Integer type, int relationId) {
-        return stageMapper.retrieveActivities(type, relationId);
+        return stageMapper.retrieveActivities(type, relationId, null, null);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class StageServiceImpl implements StageService {
 
     @Override
     public Map<String, Object> queryPMAStatistic(int partyMemberId) {
-        List<Map<String, Object>> statistic = stageMapper.retrievePMAStatistic(partyMemberId);
+        List<Map<String, Object>> statistic = stageMapper.retrievePMAStatistic(partyMemberId, null, null);
         if (statistic == null || statistic.isEmpty()) {
             return null;
         }
