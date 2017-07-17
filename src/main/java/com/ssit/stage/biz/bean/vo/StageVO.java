@@ -1,6 +1,9 @@
 package com.ssit.stage.biz.bean.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.ssit.stage.common.holder.PropertiesHolder;
+import com.ssit.stage.common.utils.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * VO
@@ -35,6 +38,9 @@ public class StageVO {
     }
 
     public String getImage() {
+        if (StringUtils.isNotBlank(image)) {
+            return PropertiesHolder.SERVER_URL + FileUtils.getFilePath(PropertiesHolder.FILE_DIRECTORY_STAGE) + image;
+        }
         return image;
     }
 

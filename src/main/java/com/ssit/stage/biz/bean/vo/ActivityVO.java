@@ -1,6 +1,9 @@
 package com.ssit.stage.biz.bean.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.ssit.stage.common.holder.PropertiesHolder;
+import com.ssit.stage.common.utils.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.sql.Date;
 import java.text.DateFormat;
@@ -29,7 +32,7 @@ public class ActivityVO {
     /**
      * 保存党支部发起该活动可获得的分数
      */
-    private int score;
+    private float score;
     private String status;
 
     public Integer getId() {
@@ -53,6 +56,9 @@ public class ActivityVO {
     }
 
     public String getImage() {
+        if (StringUtils.isNotBlank(image)) {
+            return PropertiesHolder.SERVER_URL + FileUtils.getFilePath(PropertiesHolder.FILE_DIRECTORY_ACTIVITY) + image;
+        }
         return image;
     }
 
@@ -72,7 +78,7 @@ public class ActivityVO {
         return partyMembers;
     }
 
-    public int getScore() {
+    public float getScore() {
         return score;
     }
 

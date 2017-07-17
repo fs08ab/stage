@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 public class MARelationPO {
     private Integer partyMemberId;
     private Integer activityId;
-    private Integer score;
+    private Float score;
 
     public void setPartyMemberId(Integer partyMemberId) {
         this.partyMemberId = partyMemberId;
@@ -22,7 +22,7 @@ public class MARelationPO {
         this.activityId = activityId;
     }
 
-    public void setScore(Integer score) {
+    public void setScore(Float score) {
         this.score = score;
     }
 
@@ -34,7 +34,7 @@ public class MARelationPO {
         return activityId;
     }
 
-    public Integer getScore() {
+    public Float getScore() {
         return score;
     }
 }

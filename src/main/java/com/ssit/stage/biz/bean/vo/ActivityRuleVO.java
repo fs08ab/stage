@@ -16,11 +16,11 @@ public class ActivityRuleVO {
     @JSONField(name = "activity_type")
     private String activityType;
     @JSONField(name = "member_spt")
-    private int memberSPT;
+    private float memberSPT;
     @JSONField(name = "member_tl")
     private Integer memberTL;
     @JSONField(name = "branch_spt")
-    private int branchSPT;
+    private float branchSPT;
     @JSONField(name = "branch_tl")
     private Integer branchTL;
 
@@ -32,7 +32,7 @@ public class ActivityRuleVO {
         return activityType;
     }
 
-    public int getMemberSPT() {
+    public float getMemberSPT() {
         return memberSPT;
     }
 
@@ -40,7 +40,7 @@ public class ActivityRuleVO {
         return memberTL;
     }
 
-    public int getBranchSPT() {
+    public float getBranchSPT() {
         return branchSPT;
     }
 

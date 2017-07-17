@@ -68,6 +68,13 @@ public class StageController {
 	}
 
 	@ResponseBody
+	@RequestMapping("/query_activity_rule")
+	public String queryActivityRule() {
+		List<ActivityRuleVO> activityRuleVOs = stageService.queryActivityRules();
+		return JSONObject.toJSONString(activityRuleVOs);
+	}
+
+	@ResponseBody
 	@RequestMapping("/query_activities_pm/{party_member_id}")
 	public String queryActivitiesByPM(@PathVariable("party_member_id") int partyMemberId) {
 		List<ActivityVO> activityVOs = stageService.queryActivitiesByPM(partyMemberId);

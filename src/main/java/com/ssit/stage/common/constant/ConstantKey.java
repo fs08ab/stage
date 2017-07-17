@@ -11,22 +11,30 @@ public class ConstantKey {
 
     public static final String ERROR_MESSAGE = "error_message";
 
+    public static final String RESULT_ROWS = "rows";
+
     public static final String RESULT_TOTAL = "total";
 
-    public static final String RESULT_ROWS = "rows";
+    /**
+     * 上传文件的保存位置
+     */
+    public static final String FILE_DIRECTORY = "file_directory";
+
+    /**
+     * 计数
+     */
+    public static final String BIZ_COUNT = "count";
 
     /**
      * 统计接口返回结果中的统计数据
      */
     public static final String BIZ_STATISTIC = "statistic";
-    /**
-     * 党员评级
-     */
-    public static final String BIZ_MEMBER_LEVEL = "member_level";
+
     /**
      * 党员或党支部单项评分
      */
     public static final String BIZ_SCORE = "score";
+
     /**
      * 党员或党支部总评分
      */
@@ -36,8 +44,9 @@ public class ConstantKey {
      * 党员ID
      */
     public static final String BIZ_MEMBER_ID = "party_member_id";
+
     /**
-     * 计数
+     * 党员评级
      */
-    public static final String BIZ_COUNT = "count";
+    public static final String BIZ_MEMBER_LEVEL = "member_level";
 }

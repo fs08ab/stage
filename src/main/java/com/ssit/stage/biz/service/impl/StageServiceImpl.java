@@ -4,16 +4,13 @@ import com.ssit.stage.biz.bean.vo.*;
 import com.ssit.stage.biz.dao.StageMapper;
 import com.ssit.stage.biz.service.StageService;
 import com.ssit.stage.common.constant.ConstantKey;
+import com.ssit.stage.common.utils.DateTimeUtils;
 import com.ssit.stage.common.utils.RegionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -53,12 +50,14 @@ public class StageServiceImpl implements StageService {
 
     @Override
     public List<PartyBranchVO> queryPartyBranches(String buildingId) {
-        return stageMapper.retrievePartyBranches(buildingId, null, null);
+        return stageMapper.retrievePartyBranches(buildingId,
+                DateTimeUtils.getFirstDay(Calendar.YEAR), DateTimeUtils.getLastDay(Calendar.YEAR));
     }
 
     @Override
     public List<PartyMemberVO> queryPartyMembers(int partyBranchId) {
-        return stageMapper.retrievePartyMembers(partyBranchId, null, null);
+        return stageMapper.retrievePartyMembers(partyBranchId,
+                DateTimeUtils.getFirstDay(Calendar.YEAR), DateTimeUtils.getLastDay(Calendar.YEAR));
     }
 
     @Override
@@ -72,54 +71,56 @@ public class StageServiceImpl implements StageService {
 
     @Override
     public List<ActivityVO> queryActivities(Integer type, int relationId) {
-        return stageMapper.retrieveActivities(type, relationId, null, null);
+        return stageMapper.retrieveActivities(type, relationId,
+                DateTimeUtils.getFirstDay(Calendar.YEAR), DateTimeUtils.getLastDay(Calendar.YEAR));
+    }
+
+    @Override
+    public List<ActivityRuleVO> queryActivityRules() {
+        Map<String, ActivityRuleVO> ruleMap = stageMapper.retrieveActivityRules();
+        List<ActivityRuleVO> ruleList;
+        if (ruleMap != null && !ruleMap.isEmpty()) {
+            ruleList = new ArrayList<>();
+            ruleList.addAll(ruleMap.values());
+            return ruleList;
+        }
+        return null;
     }
 
     @Override
     public List<ActivityVO> queryActivitiesByPM(int partyMemberId) {
-        return stageMapper.retrieveActivitiesByPM(partyMemberId, null, null);
+        return stageMapper.retrieveActivitiesByPM(partyMemberId,
+                DateTimeUtils.getFirstDay(Calendar.YEAR), DateTimeUtils.getLastDay(Calendar.YEAR));
     }
 
     @Override
     public Map<String, Object> queryPMAStatistic(int partyMemberId) {
-        List<Map<String, Object>> statistic = stageMapper.retrievePMAStatistic(partyMemberId, null, null);
+        List<Map<String, Object>> statistic = stageMapper.retrievePMAStatistic(partyMemberId,
+                DateTimeUtils.getFirstDay(Calendar.YEAR), DateTimeUtils.getLastDay(Calendar.YEAR));
         if (statistic == null || statistic.isEmpty()) {
             return null;
         }
 
         Map<String, Object> rlt = new HashMap<>();
-        int totalScore = 0;
-
-        int shykScore = 0;
-        int itemScore = 0;
-        Iterator<Map<String, Object>> iterator = statistic.iterator();
-        while (iterator.hasNext()) {
+        float totalScore = 0;
+        float itemScore;
+        for (Map<String, Object> item : statistic) {
             itemScore = 0;
-            Map<String, Object> item = iterator.next();
             Object typeCodeObj = item.get("type_code");
             if (typeCodeObj == null || "".equals(typeCodeObj)) {
                 continue;
             }
             Object scoreObj = item.get(ConstantKey.BIZ_SCORE);
             if (scoreObj != null && !"".equals(scoreObj)) {
-                itemScore = Integer.valueOf(scoreObj.toString());
+                itemScore = Float.valueOf(scoreObj.toString());
             }
             totalScore += itemScore;
-            if (StringUtils.equalsAnyIgnoreCase(String.valueOf(typeCodeObj), "1", "2", "3", "4")) {
-                iterator.remove();
-                shykScore += itemScore;
-            }
         }
-        Map<String, Object> shykMap = new HashMap<>();
-        shykMap.put(ConstantKey.BIZ_SCORE, shykScore);
-        shykMap.put("type", "三会一课");
-        shykMap.put("type_code", 11);
-        statistic.add(shykMap);
 
         List<DictionaryVO> memberLevel = stageMapper.retrieveDictionary(ConstantKey.BIZ_MEMBER_LEVEL);
         for (DictionaryVO dic : memberLevel) {
             String levelRegion = dic.getSupply();
-            if (RegionUtils.getIntegerRegion(levelRegion).isInclude(totalScore)) {
+            if (RegionUtils.getFloatRegion(levelRegion).isInclude(totalScore)) {
                 rlt.put(ConstantKey.BIZ_MEMBER_LEVEL, dic.getItem());
                 break;
             }

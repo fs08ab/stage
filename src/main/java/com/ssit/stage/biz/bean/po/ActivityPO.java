@@ -27,7 +27,7 @@ public class ActivityPO {
     /**
      * 保存党支部发起该活动可获得的分数
      */
-    private Integer score;
+    private Float score;
     private String status;
 
     public Integer getId() {
@@ -54,7 +54,7 @@ public class ActivityPO {
         this.id = id;
     }
 
-    public void setScore(Integer score) {
+    public void setScore(Float score) {
         this.score = score;
     }
 

@@ -27,6 +27,20 @@ public class RegionUtils {
         };
     }
 
+    public static Region<Float> getFloatRegion(String regionStr) {
+        return new Region<Float>(regionStr) {
+            @Override
+            Float string2T(String tStr) {
+                return Float.valueOf(tStr);
+            }
+
+            @Override
+            int compare(Float t1, Float t2) {
+                return t1.compareTo(t2);
+            }
+        };
+    }
+
 
     public static abstract class Region<T> {
         private T min;

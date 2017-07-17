@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.ssit.stage.biz.dao.SynchronizeMapper">
+
+	<update id="syncBuildingTable">
+		UPDATE
+			t_building b,
+			(SELECT r.building_id, COUNT(*) r_count FROM t_party_branch r GROUP BY r.building_id) rc,
+			(SELECT r.building_id, COUNT(*) m_count FROM t_party_branch r INNER JOIN t_party_member m ON m.party_branch_id = r.id GROUP BY r.building_id) mc
+		SET
+			b.party_branche_count = rc.r_count,
+			b.party_member_count = mc.m_count
+		WHERE rc.building_id = b.id AND mc.building_id = b.id
+	</update>
+
+	<update id="syncPartyBranchTable">
+		UPDATE
+			t_party_branch r,
+			(SELECT party_branch_id, COUNT(*) member_count FROM t_party_member GROUP BY party_branch_id) m
+		SET
+			r.party_member_count = m.member_count
+		WHERE r.id = m.party_branch_id
+	</update>
+
+	<delete id="truncateStatisticTable">
+		TRUNCATE TABLE t_statistic
+	</delete>
+
+	<update id="syncStatisticTable">
+		INSERT INTO t_statistic(building_id, female_rate, male_rate, aft60_rate, aft70_rate, aft80_rate, aft90_rate, le_college_rate, bachelor_rate, master_rate, doctor_rate)
+		SELECT
+			t.building_id,
+			t.female_count/t.total_count female_rate,
+			t.male_count/t.total_count male_rate,
+			t.aft60_count/t.total_count aft60_rate,
+			t.aft70_count/t.total_count aft70_rate,
+			t.aft80_count/t.total_count aft80_rate,
+			t.aft90_count/t.total_count aft90_rate,
+			t.le_college_count/t.total_count le_college_rate,
+			t.bachelor_count/t.total_count bachelor_rate,
+			t.master_count/t.total_count master_rate,
+			t.doctor_count/t.total_count doctor_rate
+		FROM (
+			SELECT
+				r.building_id,
+				COUNT(CASE WHEN m.sex_code = 0 THEN 1 ELSE NULL END) female_count,
+				COUNT(CASE WHEN m.sex_code = 1 THEN 1 ELSE NULL END) male_count,
+				COUNT(CASE WHEN m.birth_date &gt;= '1960-01-01' AND m.birth_date &lt; '1970-01-01' THEN 1 ELSE NULL END) aft60_count,
+				COUNT(CASE WHEN m.birth_date &gt;= '1970-01-01' AND m.birth_date &lt; '1980-01-01' THEN 1 ELSE NULL END) aft70_count,
+				COUNT(CASE WHEN m.birth_date &gt;= '1980-01-01' AND m.birth_date &lt; '1990-01-01' THEN 1 ELSE NULL END) aft80_count,
+				COUNT(CASE WHEN m.birth_date &gt;= '1990-01-01' AND m.birth_date &lt; '2000-01-01' THEN 1 ELSE NULL END) aft90_count,
+				COUNT(CASE WHEN m.education_code = 0 THEN 1 ELSE NULL END) le_college_count,
+				COUNT(CASE WHEN m.education_code = 1 THEN 1 ELSE NULL END) bachelor_count,
+				COUNT(CASE WHEN m.education_code = 2 THEN 1 ELSE NULL END) master_count,
+				COUNT(CASE WHEN m.education_code = 3 THEN 1 ELSE NULL END) doctor_count,
+				IF(COUNT(m.id)=0, 1, COUNT(m.id)) total_count
+			FROM t_party_member m INNER JOIN t_party_branch r ON m.party_branch_id = r.id
+			GROUP BY r.building_id
+		) t
+	</update>
+</mapper>

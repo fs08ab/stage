@@ -125,7 +125,7 @@
 			)
 	</insert>
 
-	<insert id="createActivity" parameterType="activityPO">
+	<insert id="createActivity" parameterType="activityPO" useGeneratedKeys="true" keyProperty="id">
 		INSERT INTO `t_activity` (
 			`id`,
 			`name`,
@@ -608,45 +608,6 @@
 		</where>
 	</select>
 
-	<select id="retrieveOptions" resultType="dictionaryVO">
-		SELECT
-			item_code,
-			item
-		FROM
-			t_dictionary
-		WHERE
-			category_code = #{categoryCode}
-		ORDER BY item_code
-	</select>
-
-	<select id="retrieveBuildingOptions" resultType="buildingVO">
-		SELECT
-			id,
-			`name`,
-			floors_total
-		FROM
-			t_building
-		ORDER BY id
-	</select>
-
-	<select id="retrievePartyBranchOptions" resultType="partyBranchVO">
-		SELECT
-			id,
-			`name`
-		FROM
-			t_party_branch
-		ORDER BY id
-	</select>
-
-	<select id="retrievePartyMemberOptions" resultType="partyMemberVO">
-		SELECT
-			id,
-			`name`
-		FROM
-			t_party_member
-		ORDER BY id
-	</select>
-
 	<select id="retrievePMATStatistic" resultType="java.util.Map">
 		SELECT
 			ma.party_member_id,
@@ -666,5 +627,79 @@
 			)
 		GROUP BY
 			ma.party_member_id
+	</select>
+
+	<select id="retrieveOptions" resultType="java.util.Map">
+		SELECT
+			item_code,
+			item
+		FROM
+			t_dictionary
+		WHERE
+			category_code = #{categoryCode}
+		ORDER BY item_code
+	</select>
+
+	<select id="retrieveBuildingOptions" resultType="java.util.Map">
+		SELECT
+			id AS item_code,
+			`name` AS item,
+			floors_total
+		FROM
+			t_building
+		ORDER BY id
+	</select>
+
+	<select id="retrieveStageOptions" resultType="java.util.Map">
+		SELECT
+			id AS item_code,
+			`name` AS item
+		FROM
+			t_stage
+		ORDER BY id
+	</select>
+
+	<select id="retrievePartyBranchOptions" resultType="java.util.Map">
+		SELECT
+			id AS item_code,
+			`name` AS item
+		FROM
+			t_party_branch
+		ORDER BY id
+	</select>
+
+	<select id="retrievePartyMemberOptions" resultType="java.util.Map">
+		SELECT
+			id AS item_code,
+			`name` AS item
+		FROM
+			t_party_member
+		<where>
+			AND 1 = 1
+			<if test="buildingId != null and buildingId != ''">
+				AND party_branch_id IN (SELECT id FROM t_party_branch WHERE building_id = #{buildingId})
+			</if>
+			<if test="stageId != null and stageId != ''">
+				AND party_branch_id IN (SELECT r.id
+										   FROM
+												 t_party_branch r, t_stage s
+										  WHERE
+												 r.building_id = s.building_id
+										AND s.id = #{stageId})
+			</if>
+			<if test="partyBranchId != null and partyBranchId != ''">
+				AND party_branch_id = #{partyBranchId}
+			</if>
+		</where>
+		ORDER BY id
+	</select>
+
+	<select id="retrieveActivityTypeOptions" resultType="java.util.Map">
+		SELECT
+			type_code AS item_code,
+			`type` AS item
+		FROM
+			t_activity_rule
+		ORDER BY id
 	</select>
 </mapper>

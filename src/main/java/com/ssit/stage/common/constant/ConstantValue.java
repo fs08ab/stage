@@ -9,6 +9,10 @@ package com.ssit.stage.common.constant;
 public class ConstantValue {
     public static final String DEFAULT_CHARSET = "UTF-8";
 
+    public static final String DEFAULT_DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
+
+    public static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd";
+
     public static final String STRING_CONNECTOR = ":";
 
     public static final String STRING_SEPARATOR = ";";

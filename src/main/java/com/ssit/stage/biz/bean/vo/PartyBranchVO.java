@@ -22,7 +22,7 @@ public class PartyBranchVO {
     @JSONField(name = "level_code")
     private String levelCode;
     private String level;
-    private int score;
+    private float score;
     @JSONField(name = "next_level_code")
     private String nextLevelCode;
     @JSONField(name = "next_level")
@@ -30,6 +30,8 @@ public class PartyBranchVO {
     private String advance;
     @JSONField(name = "number")
     private Integer partyMemberCount;
+    @JSONField(name = "real_pm_count")
+    private Integer realPMCount;
     @JSONField(name = "activity_count")
     private Integer activityCount;
 
@@ -71,7 +73,7 @@ public class PartyBranchVO {
         return level;
     }
 
-    public int getScore() {
+    public float getScore() {
         return score;
     }
 
@@ -89,6 +91,10 @@ public class PartyBranchVO {
 
     public Integer getPartyMemberCount() {
         return partyMemberCount;
+    }
+
+    public Integer getRealPMCount() {
+        return realPMCount;
     }
 
     public Integer getActivityCount() {

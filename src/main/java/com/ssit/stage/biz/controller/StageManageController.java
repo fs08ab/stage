@@ -9,20 +9,21 @@ import com.ssit.stage.biz.bean.qo.ActivityQO;
 import com.ssit.stage.biz.bean.qo.PartyBranchQO;
 import com.ssit.stage.biz.bean.qo.PartyMemberQO;
 import com.ssit.stage.biz.bean.qo.StageQO;
-import com.ssit.stage.biz.bean.vo.BuildingVO;
-import com.ssit.stage.biz.bean.vo.DictionaryVO;
-import com.ssit.stage.biz.bean.vo.PartyBranchVO;
-import com.ssit.stage.biz.bean.vo.PartyMemberVO;
 import com.ssit.stage.biz.service.StageManageService;
 import com.ssit.stage.common.constant.ConstantKey;
 import com.ssit.stage.common.constant.StandardResult;
 import com.ssit.stage.common.exception.BaseException;
+import com.ssit.stage.common.utils.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 驿站信息编辑接口，主要用于后台
@@ -253,11 +254,11 @@ public class StageManageController {
     }
 
     @ResponseBody
-    @RequestMapping("/query_options")
-    public String queryOptions(@RequestParam String categoryCode) {
+    @RequestMapping("/query_options/{category_code}")
+    public String queryOptions(@PathVariable("category_code") String categoryCode) {
         StandardResult standardResult;
         try {
-            List<DictionaryVO> options = stageManageService.queryOptions(categoryCode);
+            List<Map<String, String>> options = stageManageService.queryOptions(categoryCode);
             standardResult = new StandardResult(StandardResult.ResultType.SUCCESS);
             standardResult.setAttach(options);
         } catch (Exception e) {
@@ -273,9 +274,25 @@ public class StageManageController {
     public String queryBuildingOptions() {
         StandardResult standardResult;
         try {
-            List<BuildingVO> buildingList = stageManageService.queryBuildingOptions();
+            List<Map<String, String>> buildingList = stageManageService.queryBuildingOptions();
             standardResult = new StandardResult(StandardResult.ResultType.SUCCESS);
             standardResult.setAttach(buildingList);
+        } catch (Exception e) {
+            BaseException exception = BaseException.boxException(e);
+            standardResult = new StandardResult(exception);
+            LOGGER.error(exception.getLogMessage(), e);
+        }
+        return JSONObject.toJSONString(standardResult);
+    }
+
+    @ResponseBody
+    @RequestMapping("/query_stage_options")
+    public String queryStageOptions() {
+        StandardResult standardResult;
+        try {
+            List<Map<String, String>> stageList = stageManageService.queryStageOptions();
+            standardResult = new StandardResult(StandardResult.ResultType.SUCCESS);
+            standardResult.setAttach(stageList);
         } catch (Exception e) {
             BaseException exception = BaseException.boxException(e);
             standardResult = new StandardResult(exception);
@@ -289,7 +306,7 @@ public class StageManageController {
     public String queryPartyBranchOptions() {
         StandardResult standardResult;
         try {
-            List<PartyBranchVO> partyBranchList = stageManageService.queryPartyBranchOptions();
+            List<Map<String, String>> partyBranchList = stageManageService.queryPartyBranchOptions();
             standardResult = new StandardResult(StandardResult.ResultType.SUCCESS);
             standardResult.setAttach(partyBranchList);
         } catch (Exception e) {
@@ -302,12 +319,66 @@ public class StageManageController {
 
     @ResponseBody
     @RequestMapping("/query_party_member_options")
-    public String queryPartyMemberOptions() {
+    public String queryPartyMemberOptions(@RequestParam(name = "building_id", required = false) String buildingId,
+                                          @RequestParam(name = "stage_id", required = false) Integer stageId,
+                                          @RequestParam(name = "party_branch_id", required = false) Integer partyBranchId) {
         StandardResult standardResult;
         try {
-            List<PartyMemberVO> partyMemberList = stageManageService.queryPartyMemberOptions();
+            List<Map<String, String>> partyMemberList = stageManageService.queryPartyMemberOptions(buildingId, stageId, partyBranchId);
             standardResult = new StandardResult(StandardResult.ResultType.SUCCESS);
             standardResult.setAttach(partyMemberList);
+        } catch (Exception e) {
+            BaseException exception = BaseException.boxException(e);
+            standardResult = new StandardResult(exception);
+            LOGGER.error(exception.getLogMessage(), e);
+        }
+        return JSONObject.toJSONString(standardResult);
+    }
+
+    @ResponseBody
+    @RequestMapping("/query_activity_type_options")
+    public String queryActivityTypeOptions() {
+        StandardResult standardResult;
+        try {
+            List<Map<String, String>> activityTypeList = stageManageService.queryActivityTypeOptions();
+            standardResult = new StandardResult(StandardResult.ResultType.SUCCESS);
+            standardResult.setAttach(activityTypeList);
+        } catch (Exception e) {
+            BaseException exception = BaseException.boxException(e);
+            standardResult = new StandardResult(exception);
+            LOGGER.error(exception.getLogMessage(), e);
+        }
+        return JSONObject.toJSONString(standardResult);
+    }
+
+    @ResponseBody
+    @RequestMapping("/upload_file")
+    public String uploadFile(@RequestParam(required = false, name = "image") MultipartFile file,
+                             @RequestParam(required = false, name = ConstantKey.FILE_DIRECTORY) String directory) {
+        StandardResult standardResult;
+        try {
+            String pathname = FileUtils.uploadFile(file, directory);
+            standardResult = new StandardResult(StandardResult.ResultType.SUCCESS);
+            standardResult.setAttach(pathname);
+        } catch (Exception e) {
+            BaseException exception = BaseException.boxException(e);
+            standardResult = new StandardResult(exception);
+            LOGGER.error(exception.getLogMessage(), e);
+        }
+        return JSONObject.toJSONString(standardResult);
+    }
+
+    @ResponseBody
+    @RequestMapping("/upload_files")
+    public String uploadFile(HttpServletRequest request) {
+        StandardResult standardResult;
+        try {
+            // 转换为文件类型的request
+            MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+            List<String> pathnameList = FileUtils.uploadFiles(multipartRequest.getFileMap(),
+                    request.getParameter(ConstantKey.FILE_DIRECTORY));
+            standardResult = new StandardResult(StandardResult.ResultType.SUCCESS);
+            standardResult.setAttach(pathnameList);
         } catch (Exception e) {
             BaseException exception = BaseException.boxException(e);
             standardResult = new StandardResult(exception);

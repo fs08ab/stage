@@ -6,7 +6,10 @@ import com.ssit.stage.biz.bean.qo.ActivityQO;
 import com.ssit.stage.biz.bean.qo.PartyBranchQO;
 import com.ssit.stage.biz.bean.qo.PartyMemberQO;
 import com.ssit.stage.biz.bean.qo.StageQO;
-import com.ssit.stage.biz.bean.vo.*;
+import com.ssit.stage.biz.bean.vo.ActivityVO;
+import com.ssit.stage.biz.bean.vo.PartyBranchVO;
+import com.ssit.stage.biz.bean.vo.PartyMemberVO;
+import com.ssit.stage.biz.bean.vo.StageVO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -31,7 +34,7 @@ public interface StageManageMapper {
 
     int updatePartyBranch(PartyBranchPO partyBranch);
 
-    int updatePartyBranchAddScore(@Param("partyMemberId") int partyBranchId, @Param("score") int score);
+    int updatePartyBranchAddScore(@Param("partyMemberId") int partyBranchId, @Param("score") float score);
 
     List<PartyBranchVO> retrievePartyBranches(PartyBranchQO partyBranch);
 
@@ -41,7 +44,7 @@ public interface StageManageMapper {
 
     int updatePartyMember(PartyMemberPO partyMember);
 
-    int updatePartyMemberAddScore(@Param("partyMemberId") int partyMemberId, @Param("score") int score);
+    int updatePartyMemberAddScore(@Param("partyMemberId") int partyMemberId, @Param("score") float score);
 
     List<PartyMemberVO> retrievePartyMembers(PartyMemberQO partyMember);
 
@@ -65,16 +68,21 @@ public interface StageManageMapper {
 
     int deleteMARelationBatch(List<MARelationPO> maRelationList);
 
-    List<DictionaryVO> retrieveOptions(String categoryCode);
-
-    List<BuildingVO> retrieveBuildingOptions();
-
-    List<PartyBranchVO> retrievePartyBranchOptions();
-
-    List<PartyMemberVO> retrievePartyMemberOptions();
-
     /**
      * 统计参加活动activityId的党员，各自参加typeCode类型的活动的次数
      */
     List<Map<String, Integer>> retrievePMATStatistic(@Param("activityId") Integer activityId, @Param("typeCode") String typeCode);
+
+    List<Map<String, String>> retrieveOptions(String categoryCode);
+
+    List<Map<String, String>> retrieveBuildingOptions();
+
+    List<Map<String, String>> retrieveStageOptions();
+
+    List<Map<String, String>> retrievePartyBranchOptions();
+
+    List<Map<String, String>> retrievePartyMemberOptions(@Param("buildingId") String buildingId,
+                                @Param("stageId") Integer stageId, @Param("partyBranchId") Integer partyBranchId);
+
+    List<Map<String, String>> retrieveActivityTypeOptions();
 }

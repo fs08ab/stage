@@ -52,9 +52,9 @@ public class StageManageServiceImpl implements StageManageService {
 
     @Override
     public void createStage(StagePO stage) {
-        if (stage == null || stage.getId() == null) {
+        if (stage == null) {
             BaseException exception = new ParamInvalidException();
-            LOGGER.error(exception.getLogMessage("stage", JSONObject.toJSONString(stage)));
+            LOGGER.error(exception.getLogMessage("stage is null"));
             throw exception;
         }
         int count = stageManageMapper.createStage(stage);
@@ -92,9 +92,9 @@ public class StageManageServiceImpl implements StageManageService {
 
     @Override
     public void createPartyBranch(PartyBranchPO partyBranch) {
-        if (partyBranch == null || partyBranch.getId() == null) {
+        if (partyBranch == null) {
             BaseException exception = new ParamInvalidException();
-            LOGGER.error(exception.getLogMessage("partyBranch", JSONObject.toJSONString(partyBranch)));
+            LOGGER.error(exception.getLogMessage("partyBranch is null"));
             throw exception;
         }
         int count = stageManageMapper.createPartyBranch(partyBranch);
@@ -132,9 +132,9 @@ public class StageManageServiceImpl implements StageManageService {
 
     @Override
     public void createPartyMember(PartyMemberPO partyMember) {
-        if (partyMember == null || partyMember.getId() == null) {
+        if (partyMember == null) {
             BaseException exception = new ParamInvalidException();
-            LOGGER.error(exception.getLogMessage("partyMember", JSONObject.toJSONString(partyMember)));
+            LOGGER.error(exception.getLogMessage("partyMember is null"));
             throw exception;
         }
         int count = stageManageMapper.createPartyMember(partyMember);
@@ -184,7 +184,7 @@ public class StageManageServiceImpl implements StageManageService {
 
     @Override
     public void createActivity(ActivityPO activity) {
-        if (activity == null || activity.getId() == null || StringUtils.isBlank(activity.getTypeCode())) {
+        if (activity == null || StringUtils.isBlank(activity.getTypeCode())) {
             BaseException exception = new ParamInvalidException();
             LOGGER.error(exception.getLogMessage("activity", JSONObject.toJSONString(activity)));
             throw exception;
@@ -298,7 +298,7 @@ public class StageManageServiceImpl implements StageManageService {
             throw exception;
         }
 
-        Integer branchScore = null;
+        Float branchScore = null;
         if (ConstantValue.ACTIVITY_STATUS[1].equals(status)) {
             // 审核通过的处理
             // 查询活动规则
@@ -330,7 +330,7 @@ public class StageManageServiceImpl implements StageManageService {
                 activityQO.setRelationId(relationId);
                 List<ActivityVO> branchActivities = stageManageMapper.retrieveActivities(activityQO);
                 if (branchActivities != null && branchActivities.size() >= branchTL) {
-                    branchScore = 0;
+                    branchScore = 0.0f;
                 }
             }
 
@@ -343,8 +343,8 @@ public class StageManageServiceImpl implements StageManageService {
             List<Map<String, Integer>> timeCountMap = stageManageMapper.retrievePMATStatistic(activityId, typeCode);
             if (timeCountMap != null && !timeCountMap.isEmpty()) {
                 Integer memberTL = activityRule.getMemberTL();
-                int defaultMemberScore = activityRule.getMemberSPT();
-                int memberScore;
+                float defaultMemberScore = activityRule.getMemberSPT();
+                float memberScore;
                 MARelationPO maRelation;
                 Integer partyMemberId;
                 if (memberTL != null) {
@@ -429,22 +429,32 @@ public class StageManageServiceImpl implements StageManageService {
     }
 
     @Override
-    public List<DictionaryVO> queryOptions(String categoryCode) {
+    public List<Map<String, String>> queryOptions(String categoryCode) {
         return stageManageMapper.retrieveOptions(categoryCode);
     }
 
     @Override
-    public List<BuildingVO> queryBuildingOptions() {
+    public List<Map<String, String>> queryBuildingOptions() {
         return stageManageMapper.retrieveBuildingOptions();
     }
 
     @Override
-    public List<PartyBranchVO> queryPartyBranchOptions() {
+    public List<Map<String, String>> queryStageOptions() {
+        return stageManageMapper.retrieveStageOptions();
+    }
+
+    @Override
+    public List<Map<String, String>> queryPartyBranchOptions() {
         return stageManageMapper.retrievePartyBranchOptions();
     }
 
     @Override
-    public List<PartyMemberVO> queryPartyMemberOptions() {
-        return stageManageMapper.retrievePartyMemberOptions();
+    public List<Map<String, String>> queryPartyMemberOptions(String buildingId, Integer stageId, Integer partyBranchId) {
+        return stageManageMapper.retrievePartyMemberOptions(buildingId, stageId, partyBranchId);
+    }
+
+    @Override
+    public List<Map<String, String>> queryActivityTypeOptions() {
+        return stageManageMapper.retrieveActivityTypeOptions();
     }
 }

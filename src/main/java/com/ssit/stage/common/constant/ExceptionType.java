@@ -18,6 +18,8 @@ public enum ExceptionType {
 
     DATABASE_EXCEPTION("01_002", "操作数据库发生异常"),
 
+    FILE_EXCEPTION("01_003", "处理文件发生异常"),
+
     PARAMS_INVALID("02_002", "参数非法：{+}");
 
     private String code;

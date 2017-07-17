@@ -172,61 +172,81 @@
 			r.secretary_id,
 			s.`name` AS secretary_name,
 			r.superior_id,
-			l.`name` AS superior_name,
+			u.`name` AS superior_name,
 			r.level_code,
-			t.item AS `level`,
-			IFNULL(SUM(SUBSTRING_INDEX(d.supply, ',', -1)), 0) AS score,
+			l.item AS `level`,
+			IFNULL(SUM(a.score), 0) AS score,
 			(CASE WHEN r.level_code &lt;= 1 THEN '-' ELSE  ul.item_code END ) AS next_level_code,
 			(CASE WHEN r.level_code &lt;= 1 THEN '-' ELSE  ul.item END ) AS next_level,
-			(CASE WHEN r.level_code &lt;= 1 THEN '-' ELSE CONCAT(ROUND((IFNULL(SUM(SUBSTRING_INDEX(d.supply, ',', -1)), 0)/ul.supply) * 100, 2), '%') END ) advance,
+			(CASE WHEN r.level_code &lt;= 1 THEN '-' ELSE CONCAT(ROUND((IFNULL(SUM(a.score), 0)/ul.supply) * 100, 2), '%') END ) advance,
 			IFNULL(r.party_member_count, 0) AS party_member_count,
+			COUNT(DISTINCT m.id) AS real_pm_count,
 			COUNT(a.id) as activity_count,
 			r.floor
 		FROM
 			t_party_branch r
-			LEFT JOIN t_dictionary t ON t.item_code = r.level_code
-										AND t.category_code = 'branch_level'
+			LEFT JOIN t_dictionary l ON l.item_code = r.level_code
+										AND l.category_code = 'branch_level'
 			LEFT JOIN t_dictionary ul ON ul.item_code = (r.level_code - 1)
 										AND ul.category_code = 'branch_level'
-			LEFT JOIN t_party_branch l ON l.id = r.superior_id
+			LEFT JOIN t_party_branch u ON u.id = r.superior_id
 			LEFT JOIN t_party_member s ON s.id = r.secretary_id
+			LEFT JOIN t_party_member m ON m.party_branch_id = r.id
 			LEFT JOIN t_activity a ON a.relation_id = r.id AND a.type_code != '0'
-			LEFT JOIN t_dictionary d ON d.item_code = a.type_code
-										AND d.category_code = 'activity_type'
+				<if test="startDate != null and startDate != ''">
+					AND a.`date` &gt;= #{startDate}
+				</if>
+				<if test="endDate != null and endDate != ''">
+					AND a.`date` &lt;= #{endDate}
+				</if>
 		WHERE
 			r.building_id = #{buildingId}
-		GROUP BY r.id, r.`name`, r.secretary_id, s.`name`, r.superior_id, l.`name`, r.level_code, t.item, r.score, ul.item_code, ul.item, ul.supply, r.party_member_count, r.floor
+		GROUP BY r.id, r.`name`, r.secretary_id, s.`name`, r.superior_id, u.`name`, r.level_code, l.item, r.score, ul.item_code, ul.item, ul.supply, r.party_member_count, r.floor
 	</select>
 
 	<select id="retrievePartyMembers" resultType="partyMemberVO">
 		<!-- 按积分从高到低排列 -->
-		SELECT
-			m.id,
-			m.`name`,
-			m.sex_code,
-			s.item AS sex,
-			DATE_FORMAT(birth_date, '%Y.%m') AS birth_date,
-			m.education_code,
-			e.item AS education,
-			adm_post,
-			m.party_post_code,
-			p.item AS party_post,
-			SUM(SUBSTRING_INDEX(d.supply, ',', 1)) AS score
-		FROM
-			t_party_member m
-			LEFT JOIN t_dictionary s ON s.item_code = m.sex_code
-										AND s.category_code = 'sex'
-			LEFT JOIN t_dictionary e ON e.item_code = m.education_code
-										AND e.category_code = 'education'
-			LEFT JOIN t_dictionary p ON p.item_code = m.party_post_code
-										AND p.category_code = 'party_post'
-			LEFT JOIN t_rela_pm_act r ON r.party_member_id = m.id
-			LEFT JOIN t_activity a ON a.id = r.activity_id
-			LEFT JOIN t_dictionary d ON d.item_code = a.type_code
-										AND d.category_code = 'activity_type'
-		WHERE
-			m.party_branch_id = ${partyBranchId}
-		GROUP BY m.id, m.`name`, m.sex_code, s.item, m.birth_date, m.education_code, e.item, m.adm_post, m.party_post_code, p.item
+		SELECT *
+		FROM (
+			SELECT
+				m.id,
+				m.`name`,
+				m.sex_code,
+				s.item AS sex,
+				DATE_FORMAT(m.birth_date, '%Y.%m') AS birth_date,
+				m.education_code,
+				e.item AS education,
+				m.adm_post,
+				m.party_post_code,
+				p.item AS party_post,
+				IFNULL(SUM(t.score), 0) AS score
+			FROM
+				t_party_member m
+				LEFT JOIN t_dictionary s ON s.item_code = m.sex_code
+											AND s.category_code = 'sex'
+				LEFT JOIN t_dictionary e ON e.item_code = m.education_code
+											AND e.category_code = 'education'
+				LEFT JOIN t_dictionary p ON p.item_code = m.party_post_code
+											AND p.category_code = 'party_post'
+				LEFT JOIN (
+						SELECT
+							r.party_member_id,
+							r.score,
+							a.date
+						FROM t_rela_pm_act r
+							  LEFT JOIN t_activity a ON a.id = r.activity_id) t ON t.party_member_id = m.id
+								<if test="startDate != null and startDate != ''">
+									AND t.`date` &gt;= #{startDate}
+								</if>
+								<if test="endDate != null and endDate != ''">
+									AND t.`date` &lt;= #{endDate}
+								</if>
+			WHERE
+				m.party_branch_id = ${partyBranchId}
+			GROUP BY
+				m.id, m.`name`, m.sex_code, s.item, m.birth_date, m.education_code, e.item, m.adm_post, m.party_post_code, p.item
+		) t
+		ORDER BY t.score DESC
 	</select>
 
 	<select id="retrieveMemberStatistic" resultType="memberStatisticVO">
@@ -304,29 +324,38 @@
 				AND 1 != 1
 			</otherwise>
 		</choose>
+		<if test="startDate != null and startDate != ''">
+			AND `date` &gt;= #{startDate}
+		</if>
+		<if test="endDate != null and endDate != ''">
+			AND `date` &lt;= #{endDate}
+		</if>
 	</select>
 
 	<select id="retrieveActivityRules" resultType="activityRuleVO">
 		SELECT
-			statistic_type AS activity_kind,
+			kind AS activity_kind,
 			type_code,
-			IF (type_code = statistic_type_code, '-', `type`) AS activity_type,
+			IF (type_code = kind_code, '-', `type`) AS activity_type,
 			score_per_time_m AS member_spt,
 			time_limit_m AS member_tl,
 			score_per_time_b AS branch_spt,
 			time_limit_b AS branch_tl
 		FROM
 			t_activity_rule
+		ORDER BY id
 	</select>
 
 	<select id="retrieveActivitiesByPM" resultType="activityVO">
 		SELECT
 			a.id,
 			a.`name`,
+			r.type,
 			a.`date`,
 			ma.score
 		FROM
 			t_activity a
+			LEFT JOIN t_activity_rule r ON r.type_code = a.type_code
 			LEFT JOIN t_rela_pm_act ma ON ma.activity_id = a.id
 		WHERE
 			a.`status` = 'S'
@@ -366,40 +395,43 @@
 
 	<select id="retrievePMAStatistic" resultType="java.util.Map">
 		SELECT
-			rule.statistic_type_code AS type_code,
-			rule.statistic_type AS type,
-			IF (rule.statistic_type_code != AVG(rule.type_code), GROUP_CONCAT(rule.type), NULL) AS sub_type,
+			rule.kind_code AS type_code,
+			rule.kind AS type,
+			IF (MAX(rule.kind_code) != GROUP_CONCAT(rule.type_code), GROUP_CONCAT(rule.type), NULL) AS sub_type,
 			IFNULL(SUM(t.type_score), 0) AS score
 		FROM
-			t_activity_rule rule
+			(SELECT
+				type_code,
+				type,
+				IFNULL(kind_code, type_code) AS kind_code,
+				IFNULL(kind, type) AS kind,
+				score_per_time_m,
+				time_limit_m,
+				score_per_time_b,
+				time_limit_b
+			FROM
+				t_activity_rule) AS rule
 			LEFT JOIN (
-						  SELECT
-							  ar.type_code,
-							  IF (ar.time_limit_m IS NULL, SUM(ar.score_per_time_m),
-									  LEAST(
-											  SUM(ar.score_per_time_m),
-											  ar.score_per_time_m * ar.time_limit_m
-									  )
-							  ) AS type_score
-						  FROM
-							  t_activity_rule ar
-							  LEFT JOIN t_activity a ON a.type_code = ar.type_code AND a.`status` = 'S'
-							  LEFT JOIN t_rela_pm_act ma ON ma.activity_id = a.id
-						  WHERE
-							  ma.party_member_id = ${partyMemberId}
-						<if test="startDate != null and startDate != ''">
-							AND a.`date` &gt;= #{startDate}
-						</if>
-						<if test="endDate != null and endDate != ''">
-							AND a.`date` &lt;= #{endDate}
-						</if>
-						  GROUP BY
-							  ar.type_code
+					SELECT
+						a.type_code,
+						IFNULL(SUM(ma.score), 0) AS type_score
+					FROM
+						t_rela_pm_act ma
+						INNER JOIN t_activity a ON a.id = ma.activity_id
+					WHERE
+						ma.party_member_id = ${partyMemberId}
+					AND a.`status` = 'S'
+				<if test="startDate != null and startDate != ''">
+					AND a.`date` &gt;= #{startDate}
+				</if>
+				<if test="endDate != null and endDate != ''">
+					AND a.`date` &lt;= #{endDate}
+				</if>
+					  GROUP BY
+						  a.type_code
 					  ) t ON t.type_code = rule.type_code
 		GROUP BY
-			rule.statistic_type_code, rule.statistic_type
-		ORDER BY
-			CAST(rule.statistic_type_code AS SIGNED)
+			rule.kind_code, rule.kind
 	</select>
 
 	<!--<select id="retrievePMAStatistic" resultType="java.util.Map">

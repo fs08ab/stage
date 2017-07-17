@@ -9,7 +9,6 @@ import com.ssit.stage.biz.bean.qo.ActivityQO;
 import com.ssit.stage.biz.bean.qo.PartyBranchQO;
 import com.ssit.stage.biz.bean.qo.PartyMemberQO;
 import com.ssit.stage.biz.bean.qo.StageQO;
-import com.ssit.stage.biz.bean.vo.*;
 
 import java.util.List;
 import java.util.Map;
@@ -66,11 +65,15 @@ public interface StageManageService {
      */
     void examineActivity(ActivityPO activity);
 
-    List<DictionaryVO> queryOptions(String categoryCode);
+    List<Map<String, String>> queryOptions(String categoryCode);
 
-    List<BuildingVO> queryBuildingOptions();
+    List<Map<String, String>> queryBuildingOptions();
 
-    List<PartyBranchVO> queryPartyBranchOptions();
+    List<Map<String, String>> queryStageOptions();
 
-    List<PartyMemberVO> queryPartyMemberOptions();
+    List<Map<String, String>> queryPartyBranchOptions();
+
+    List<Map<String, String>> queryPartyMemberOptions(String buildingId, Integer stageId, Integer partyBranchId);
+
+    List<Map<String, String>> queryActivityTypeOptions();
 }

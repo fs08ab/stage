@@ -56,6 +56,26 @@ public class PropertiesHolder {
 	 */
 	public static String DEFAULT_TIME_PATTERN;
 
+	/**
+	 * 默认文件保存位置
+	 */
+	public static String DEFAULT_FILE_DIRECTORY;
+
+	/**
+	 * 驿站文件保存位置
+	 */
+	public static String FILE_DIRECTORY_STAGE;
+
+	/**
+	 * 活动文件保存位置
+	 */
+	public static String FILE_DIRECTORY_ACTIVITY;
+
+	/**
+	 * 系统访问路径
+	 */
+	public static String SERVER_URL;
+
 	@Value("#{properties['access_log_switch']}")
 	public void setAccessLogSwitch(String accessLogSwitch) {
 		ACCESS_LOG_SWITCH = StringUtils.equalsIgnoreCase("on", accessLogSwitch);
@@ -103,5 +123,25 @@ public class PropertiesHolder {
 	@Value("#{properties['default_time_pattern']}")
 	public void setDefaultTimePattern(String defaultTimePattern) {
 		DEFAULT_TIME_PATTERN = defaultTimePattern;
+	}
+
+	@Value("#{properties['default_file_directory']}")
+	public void setDefaultFileDirectory(String defaultFileDirectory) {
+		DEFAULT_FILE_DIRECTORY = defaultFileDirectory;
+	}
+
+	@Value("#{properties['file_directory_stage']}")
+	public void setFileDirectoryStage(String fileDirectoryStage) {
+		FILE_DIRECTORY_STAGE = fileDirectoryStage;
+	}
+
+	@Value("#{properties['file_directory_activity']}")
+	public void setFileDirectoryActivity(String fileDirectoryActivity) {
+		FILE_DIRECTORY_ACTIVITY = fileDirectoryActivity;
+	}
+
+	@Value("#{properties['server_url']}")
+	public void setServerUrl(String serverUrl) {
+		SERVER_URL = serverUrl;
 	}
 }

@@ -31,5 +31,6 @@
 	<mappers>
 		<mapper resource="mappers/stage.xml" />
 		<mapper resource="mappers/stage_manage.xml" />
+		<mapper resource="mappers/synchronize.xml" />
 	</mappers>
 </configuration>

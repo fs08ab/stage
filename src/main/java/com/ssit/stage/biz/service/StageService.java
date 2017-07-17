@@ -27,6 +27,8 @@ public interface StageService {
 
     List<ActivityVO> queryActivities(Integer type, int relationId);
 
+    List<ActivityRuleVO> queryActivityRules();
+
     List<ActivityVO> queryActivitiesByPM(int partyMemberId);
 
     Map<String, Object> queryPMAStatistic(int partyMemberId);

@@ -1,0 +1,30 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
+
+    <!-- 触发器配置 时间指定 -->
+    <bean id="syncDataCronTrigger"
+          class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="cronExpression" value="${job_cron_sync}"/>
+        <property name="jobDetail">
+            <!-- 任务配置列表 -->
+            <bean class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+                <property name="targetObject" ref="syncDataJob"/>
+                <property name="targetMethod" value="execute"/>
+                <!-- 是否允许任务并发执行,当值为false时，表示必须等到前一个线程处理完毕后才再启一个新的线程 -->
+                <property name="concurrent" value="false"/>
+            </bean>
+        </property>
+    </bean>
+
+    <!-- 总管理类 -->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <!-- 触发器列表 -->
+                <ref bean="syncDataCronTrigger"/>
+            </list>
+        </property>
+    </bean>
+
+</beans>  

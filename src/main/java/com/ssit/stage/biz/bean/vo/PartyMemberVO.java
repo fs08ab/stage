@@ -26,7 +26,7 @@ public class PartyMemberVO {
     private String partyPostCode;
     @JSONField(name = "dnzw")
     private String partyPost;
-    private int score;
+    private Float score;
 
     @JSONField(name = "party_branch_id")
     private Integer partyBranchId;
@@ -73,7 +73,7 @@ public class PartyMemberVO {
         return partyPost;
     }
 
-    public int getScore() {
+    public Float getScore() {
         return score;
     }
 

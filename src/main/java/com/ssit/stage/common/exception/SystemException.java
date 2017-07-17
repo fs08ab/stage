@@ -30,7 +30,7 @@ public class SystemException extends BaseException {
         super(exceptionType);
     }
 
-    protected SystemException(ExceptionType exceptionType, Throwable e) {
+    public SystemException(ExceptionType exceptionType, Throwable e) {
         super(exceptionType, e);
     }
 }
